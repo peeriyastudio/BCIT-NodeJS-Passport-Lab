@@ -1,0 +1,46 @@
+<h1 class="mt-4">Dashboard (<%= user.role %>)</h1>
+<p class="lead mb-3">Welcome <%= user.name %></p>
+<p>Current active session(s):</p>
+
+<% if (activeSessions && activeSessions.length > 0) { %>
+  <ul>
+    <% activeSessions.forEach(function(session) { %>
+      <li id="session-<%= session.sessionID %>">
+        <strong>User ID: <%= session.userId %></strong><br />
+        Session ID: <%= session.sessionID %><br />
+        <a href="javascript:void(0);" class="revoke-session" data-session-id="<%= session.sessionID %>">Revoke Session</a>
+      </li>
+    <% }) %>
+  </ul>
+<% } else { %>
+  <p>No active sessions found.</p>
+<% } %>
+
+<p class="mt-4"><a href="/auth/logout" class="btn btn-secondary">Logout</a></p>
+
+<script>
+  document.querySelectorAll('.revoke-session').forEach(function(link) {
+    link.addEventListener('click', function(event) {
+      event.preventDefault();
+
+      const sessionID = this.getAttribute('data-session-id');
+
+      fetch(`/revoke-session/${sessionID}`, {
+        method: 'DELETE',
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById(`session-${sessionID}`).remove();
+          alert(`Session ${sessionID} has been successfully revoked.`);
+        } else {
+          alert('Failed to revoke session: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while revoking the session.');
+      });
+    });
+  });
+</script>
